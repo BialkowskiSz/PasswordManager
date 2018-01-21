@@ -76,11 +76,9 @@ def readAndReturnPassword():
 
 #    Generates random password using urandom
 def generatePassword(length=30):
-    characterSet    = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ^!\$%&/()=?{[]}+~#-_.:,;<>|\\"
-    password        = []
+    characterSet    = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
     randomGenerator = SystemRandom()
-    for i in range(length):
-        password.append(randomGenerator.choice(characterSet))
+    password        = [  randomGenerator.choice(characterSet) for i in range(length)  ]
     return ''.join(password)
 
 
@@ -121,7 +119,8 @@ def openVault():
 2: Add.
 3: Update.
 4: Delete.
-5: Encrypt and close vault."""
+5: Encrypt and close vault.
+6: Discard changes and close vault."""
 
     password = getpass("Please enter in your vault password: ")
     with open("PasswordVault", "r+") as vault:
@@ -183,6 +182,9 @@ def openVault():
                     print("Vault successfully saved.")
                     raw_input()
                     break
+
+            elif userInput == 6:
+                break
 
 
         except Exception as e:
