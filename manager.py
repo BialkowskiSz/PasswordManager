@@ -68,11 +68,12 @@ def overwriteVaultQuestion():
 #   Read password from user
 def readAndReturnPassword():
     while True:
-        password = raw_input("\nPlease enter in a strong master password.\n")
-        if not 0 < len(password) < 256:
-            print("Password length has to be between 0-256")
-        else:
-            return password
+        while True:
+            password = raw_input("\nPlease enter in a strong master password.\n")
+            if not 0 < len(password) < 256:
+                print("Password length has to be between 0-256")
+            else:
+                return password
 
 #    Generates random password using urandom
 def generatePassword(length=30):
@@ -88,28 +89,35 @@ def createVault():
     print("\nCreating new vault...")
     if os.path.isfile("PasswordVault"):
         check = overwriteVaultQuestion()
-        if check == 'y':
-            password = readAndReturnPassword()
-            print("\nCreating vault...")
-            credentials = readAllPasswords()
+        if check != 'y':
+            return None
 
-            with open("PasswordVault", "w") as vault:
-                #   All necessary arguments
-                salt        = get_random_bytes(32)
-                N           = 262144
-                r           = 8
-                p           = 1
-                keyLenght   = 32
-                nonce       = get_random_bytes(32)
+    password = readAndReturnPassword()
+    print("\nCreating vault...")
+    credentials = readAllPasswords()
 
-                #   Perform scrypt key stretching
-                password = scrypt(password, salt, keyLenght, N, r, p)
+    try:
+        with open("PasswordVault", "w") as vault:
+            #   All necessary arguments
+            salt        = get_random_bytes(32)
+            N           = 262144
+            r           = 8
+            p           = 1
+            keyLenght   = 32
+            nonce       = get_random_bytes(32)
 
-                aes = AES.new(password, AES.MODE_GCM, nonce=nonce)
-                credentials = dumps(credentials)
-                credentials, tag = aes.encrypt_and_digest(credentials)
-                [vault.write(x) for x in (salt, aes.nonce, tag, credentials)]
-                print("Vault successfully created.")
+            #   Perform scrypt key stretching
+            password = scrypt(password, salt, keyLenght, N, r, p)
+
+            aes = AES.new(password, AES.MODE_GCM, nonce=nonce)
+            credentials = dumps(credentials)
+            credentials, tag = aes.encrypt_and_digest(credentials)
+            [vault.write(x) for x in (salt, nonce, tag, credentials)]
+            print("Vault successfully created.")
+    except Exception:
+        print("Unable to create vault.")
+
+
 
 
 
@@ -123,7 +131,7 @@ def openVault():
 6: Discard changes and close vault."""
 
     password = getpass("Please enter in your vault password: ")
-    with open("PasswordVault", "r+") as vault:
+    with open("PasswordVault", "r") as vault:
         try:
             keyLenght   = 32
             salt, nonce, tag, ciphertext = [ vault.read(x) for x in (32, 32, 16, -1) ]
