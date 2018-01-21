@@ -96,7 +96,7 @@ def createVault():
             with open("PasswordVault", "w") as vault:
                 #   All necessary arguments
                 salt        = get_random_bytes(32)
-                N           = 65536
+                N           = 262144
                 r           = 8
                 p           = 1
                 keyLenght   = 32
@@ -127,7 +127,7 @@ def openVault():
         try:
             keyLenght   = 32
             salt, nonce, tag, ciphertext = [ vault.read(x) for x in (32, 32, 16, -1) ]
-            password = scrypt(password, salt, keyLenght, 65536, 8, 1)
+            password = scrypt(password, salt, keyLenght, 262144, 8, 1)
             aes = AES.new(password, AES.MODE_GCM, nonce=nonce)
             credentials = aes.decrypt_and_verify(ciphertext, tag)
             credentials = loads(credentials)
